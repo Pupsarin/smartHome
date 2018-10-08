@@ -11,6 +11,16 @@ House.prototype.setDeviceLocation = function (device, roomName){
 	}
 }
 
+House.prototype.getDeviceLocation = function (device) {
+	for (x in house._deviceLocation) {
+		for (y of house._deviceLocation[x]) {
+			if (y === device) {
+				return x;
+			}
+		}
+	}
+}
+
 
 function SmartDevice(name) {
 	this._name = name.toLowerCase();
@@ -20,7 +30,7 @@ function SmartDevice(name) {
 SmartDevice.prototype = Object.create(House.prototype);
 SmartDevice.prototype.constructor = House;
 
-SmartDevice.prototype.turnOnOff = function(command) { //TODO: think about the functionality
+SmartDevice.prototype.turnOnOff = function(command) { 
 	if (this._status === command) {
 		return (`The ${this._name} is currently turned ${command ? 'on' : 'off'}.`);
 	}
@@ -44,6 +54,11 @@ Lamp.prototype.constructor = SmartDevice;
 
 Lamp.prototype.setLightColor = function (hexColor) {
 	this._lightColor = hexColor;
+	this._changeLight(this._lightColor, this._brightness);
+}
+
+Lamp.prototype.setBrightness = function (hexNum) {
+	this._brightness = hexNum;
 	this._changeLight(this._lightColor, this._brightness);
 }
 
