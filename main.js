@@ -4,21 +4,29 @@ function House(address) {
 }
 
 House.prototype.setDeviceLocation = function (device, roomName){
-	if (this._deviceLocation[roomName] === undefined) {
+	if (this._deviceLocation[roomName] === undefined) { //TOFIX: 
 		this._deviceLocation[roomName] = [device];
 	} else {
+		for (x in this._deviceLocation) {
+			this._deviceLocation[x].forEach(function (element, indx, arr) {
+				if (element === device) {
+					console.log(arr);
+					arr.splice(indx, 1);
+				};
+			});
+		};
 		this._deviceLocation[roomName].push(device);
 	}
 }
 
 House.prototype.getDeviceLocation = function (device) {
-	for (x in house._deviceLocation) {
-		for (y of house._deviceLocation[x]) {
-			if (y === device) {
-				return x;
-			}
-		}
-	}
+	var _locatiaon = '';
+	for (x in this._deviceLocation) {
+		this._deviceLocation[x].forEach(function (element) {
+			if (element === device) _locatiaon = x;
+		});
+	};
+	return _locatiaon;
 }
 
 
@@ -26,9 +34,6 @@ function SmartDevice(name) {
 	this._name = name.toLowerCase();
 	this._status = false;
 }
-
-SmartDevice.prototype = Object.create(House.prototype);
-SmartDevice.prototype.constructor = House;
 
 SmartDevice.prototype.turnOnOff = function(command) { 
 	if (this._status === command) {
@@ -41,6 +46,21 @@ SmartDevice.prototype.turnOnOff = function(command) {
 		this.status = false;
 		return `Turning the ${this._name} OFF.`;
 	}
+}
+
+SmartDevice.prototype.setDeviceLocation = function(houseObject, roomName) {
+	if (houseObject === undefined) return "Looks like you have more important things to do. For example, buy or rent a house, would be a great idea!";
+	if (roomName === undefined) return "Specify device location";
+	if (houseObject instanceof House) {
+		return houseObject.setDeviceLocation(this, roomName);
+	} else {
+		return "Inctance of House expected as first argument";
+	}
+}
+
+SmartDevice.prototype.getDeviceLocation = function(houseObject) {
+
+		return houseObject.getDeviceLocation(this);
 }
 
 function Lamp (name) {
@@ -86,6 +106,6 @@ var house = new House('Kharkiv');
 var lamp = new Lamp('Lamp');
 var lamp2 = new Lamp('Lamp');
 var tv = new Tv('TV');
-house.setDeviceLocation(lamp, 'living-room')
+house.setDeviceLocation(lamp, 'living_room')
 house.setDeviceLocation(lamp2, 'kitchen')
-house.setDeviceLocation(tv, 'living-room')
+house.setDeviceLocation(tv, 'living_room')
