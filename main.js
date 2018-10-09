@@ -1,67 +1,91 @@
 function House(address) {
     this._address = address;
-    this._deviceLocation = {};
+		this.rooms = [];
 }
 
-House.prototype.setDeviceLocation = function (device, roomName){
-	if (this._deviceLocation[roomName] === undefined) { //TOFIX: 
-		this._deviceLocation[roomName] = [device];
+House.prototype.addRoom = function(room){
+	if(room instanceof Room) {
+		if (this.rooms.find(function(rm){ return rm === room})) {
+			console.warn(`The ${room.title} already exists in this house`);
+		} else {
+			this.rooms.push(room);
+			console.info(`${room.title} successfully added`);
+		}
 	} else {
-		for (x in this._deviceLocation) {
-			this._deviceLocation[x].forEach(function (element, indx, arr) {
-				if (element === device) {
-					console.log(arr);
-					arr.splice(indx, 1);
-				};
-			});
-		};
-		this._deviceLocation[roomName].push(device);
+		console.error('Please provide a Room object');
 	}
 }
 
-House.prototype.getDeviceLocation = function (device) {
-	var _locatiaon = '';
-	for (x in this._deviceLocation) {
-		this._deviceLocation[x].forEach(function (element) {
-			if (element === device) _locatiaon = x;
-		});
+
+function Room(title) {
+	this.title = title;
+	this._devices = [];
+}
+
+Room.prototype.toString = function () { //TODO: ask Max
+	return this.title;
+}
+
+Room.prototype.addDevice = function (device) {//TODO: on ELSE => remove the device from the previous room before adding to the new one
+	if (device instanceof SmartDevice) {
+		if(this._devices.find(function(dev){return device === dev})) {
+			console.warn(`The ${device.name} is already in this room`);
+		} else {
+			this._devices.push(device);
+			device.setLocation(this);
+		}
+	} else {
+		console.error('Please provide a smart device');	
 	};
-	return _locatiaon;
+}
+
+Room.prototype.showAllDevices = function() {
+	this._devices.forEach(function(elem){
+		console.info(elem.name);
+	});
 }
 
 
 function SmartDevice(name) {
-	this._name = name.toLowerCase();
+	this.name = name.toLowerCase();
 	this._status = false;
+	this._location = null;
+}
+
+SmartDevice.prototype.toString = function () { //TODO: ask Max
+	return `${this.name} in the ${this._location}`;
 }
 
 SmartDevice.prototype.turnOnOff = function(command) { 
 	if (this._status === command) {
-		return (`The ${this._name} is currently turned ${command ? 'on' : 'off'}.`);
+		return (`The ${this.name} is currently turned ${command ? 'on' : 'off'}.`);
 	}
 	if (command) {
 		this.status = true;
-		return `Turning the ${this._name} ON.`;
+		return `Turning the ${this.name} ON.`;
 	} else {
 		this.status = false;
-		return `Turning the ${this._name} OFF.`;
+		return `Turning the ${this.name} OFF.`;
 	}
 }
 
-SmartDevice.prototype.setDeviceLocation = function(houseObject, roomName) {
-	if (houseObject === undefined) return "Looks like you have more important things to do. For example, buy or rent a house, would be a great idea!";
-	if (roomName === undefined) return "Specify device location";
-	if (houseObject instanceof House) {
-		return houseObject.setDeviceLocation(this, roomName);
+SmartDevice.prototype.setLocation = function(room) {
+	if (room instanceof Room) {
+		this._location = room;
+		console.info(`${this.name} now in the ${room.title}`);
 	} else {
-		return "Inctance of House expected as first argument";
+		console.error('Please provide a Room object');
 	}
 }
 
-SmartDevice.prototype.getDeviceLocation = function(houseObject) {
-
-		return houseObject.getDeviceLocation(this);
+SmartDevice.prototype.getLocation = function() {
+	if (this._location === null) {
+		console.info(`The ${this.name} not in a room yet.`);
+	} else {
+		this._location.title;
+	}
 }
+
 
 function Lamp (name) {
 	SmartDevice.call(this, name);
@@ -83,9 +107,10 @@ Lamp.prototype.setBrightness = function (hexNum) {
 }
 
 Lamp.prototype._changeLight = function (color, brightness) {
-	var lamp = document.querySelector("." + this._name);
+	var lamp = document.querySelector("." + this.name);
 	lamp.style.backgroundColor = color + brightness;
 }
+
 
 function Tv (name) {
 	SmartDevice.call(this, name);
@@ -100,12 +125,15 @@ Tv.prototype.constructor = SmartDevice;
 
 
 
-
-
 var house = new House('Kharkiv');
+var livingRoom = new Room('living room');
+var kitchen = new Room('kitchen');
+house.addRoom(livingRoom);
+house.addRoom(kitchen);
 var lamp = new Lamp('Lamp');
 var lamp2 = new Lamp('Lamp');
 var tv = new Tv('TV');
-house.setDeviceLocation(lamp, 'living_room')
-house.setDeviceLocation(lamp2, 'kitchen')
-house.setDeviceLocation(tv, 'living_room')
+livingRoom.addDevice(tv);
+livingRoom.addDevice(lamp);
+lamp2.setLocation(kitchen);
+
