@@ -26,13 +26,13 @@ Room.prototype.toString = function () { //TODO: ask Max
 	return this.title;
 }
 
-Room.prototype.addDevice = function (device) {//TODO: on ELSE => remove the device from the previous room before adding to the new one
+Room.prototype.addDevice = function (device, _internalFlag) {//TODO: on ELSE => remove the device from the previous room before adding to the new one
 	if (device instanceof SmartDevice) {
 		if(this._devices.find(function(dev){return device === dev})) {
 			console.warn(`The ${device.name} is already in this room`);
 		} else {
 			this._devices.push(device);
-			device.setLocation(this);
+			if (!_internalFlag) device.setLocation(this, true);
 		}
 	} else {
 		console.error('Please provide a smart device');	
@@ -69,8 +69,9 @@ SmartDevice.prototype.turnOnOff = function(command) {
 	}
 }
 
-SmartDevice.prototype.setLocation = function(room) {
+SmartDevice.prototype.setLocation = function(room, _internalFlag) {
 	if (room instanceof Room) {
+		if (!_internalFlag) room.addDevice(this, true);
 		this._location = room;
 		console.info(`${this.name} now in the ${room.title}`);
 	} else {
@@ -130,10 +131,14 @@ var livingRoom = new Room('living room');
 var kitchen = new Room('kitchen');
 house.addRoom(livingRoom);
 house.addRoom(kitchen);
-var lamp = new Lamp('Lamp');
-var lamp2 = new Lamp('Lamp');
-var tv = new Tv('TV');
+
+var lamp = new Lamp('Golden Dragon');
+var lamp2 = new Lamp('IKEA');
+var tv = new Tv('Sony');
+var tv2 = new Tv('Samsung');
+
 livingRoom.addDevice(tv);
 livingRoom.addDevice(lamp);
 lamp2.setLocation(kitchen);
+tv2.setLocation(kitchen);
 
