@@ -32,7 +32,6 @@ Room.prototype.addDevice = function (device) {//TODO: on ELSE => remove the devi
 			console.warn(`The ${device.name} is already in this room`);
 		} else {
 			this._devices.push(device);
-			device.setLocation(this);
 		}
 	} else {
 		console.error('Please provide a smart device');	
@@ -47,7 +46,7 @@ Room.prototype.showAllDevices = function() {
 
 
 function SmartDevice(name) {
-	this.name = name.toLowerCase();
+	this.name = name;
 	this._status = false;
 	this._location = null;
 }
@@ -69,22 +68,23 @@ SmartDevice.prototype.turnOnOff = function(command) {
 	}
 }
 
-SmartDevice.prototype.setLocation = function(room) {
-	if (room instanceof Room) {
-		this._location = room;
-		console.info(`${this.name} now in the ${room.title}`);
-	} else {
-		console.error('Please provide a Room object');
-	}
-}
+// SmartDevice.prototype.setLocation = function(room) {
+// 	if (room instanceof Room) {
+// 		this._location = room;
+// 		room.addDevice(this);
+// 		console.info(`${this.name} now in the ${room.title}`);
+// 	} else {
+// 		console.error('Please provide a Room object');
+// 	}
+// }
 
-SmartDevice.prototype.getLocation = function() {
-	if (this._location === null) {
-		console.info(`The ${this.name} not in a room yet.`);
-	} else {
-		this._location.title;
-	}
-}
+// SmartDevice.prototype.getLocation = function() {
+// 	if (this._location === null) {
+// 		console.info(`The ${this.name} not in a room yet.`);
+// 	} else {
+// 		this._location.title;
+// 	}
+// }
 
 
 function Lamp (name) {
@@ -135,5 +135,4 @@ var lamp2 = new Lamp('Lamp');
 var tv = new Tv('TV');
 livingRoom.addDevice(tv);
 livingRoom.addDevice(lamp);
-lamp2.setLocation(kitchen);
-
+kitchen.addDevice(lamp2);
