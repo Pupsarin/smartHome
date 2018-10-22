@@ -1,10 +1,4 @@
-// import show from './show.js';
-
-class Utility {
-	static show(string) {
-		console.info(`%c${string}`, 'color: #6cd8fb; background-color: #00094d');
-	}
-}
+'use strict';
 
 class House {
 	constructor(address) {
@@ -13,7 +7,7 @@ class House {
 	}
 
 	get address() {
-		// show(this._address);
+		show(this._address);
 	}
 
 	set address(newAddress) {
@@ -23,15 +17,29 @@ class House {
 	addRoom(room) {
 		if(room instanceof Room) {
 			if (this.rooms.find(rm => rm === room)) {
-				console.warn(`The ${room.title} already exists in this house`);
+				console.warn(`The ${room.title} already exists in this house!`);
 			} else {
 				this.rooms.push(room);
-				Utility.show(`${room.title} successfully added`);
+				show(`The ${room.title} successfully added!`);
 			}
 		} else {
-			console.error('Please provide a Room object');
+			console.error('Please provide a Room object!');
 		}
 	}
+
+	removeRoom(room) {
+		if(room instanceof Room) {
+			if (this.rooms.find(rm => rm === room))  {
+				this.rooms.splice(this.rooms.indexOf(room), 1);
+				show(`The ${room.title} successfully removed!`)
+			} else {
+				console.warn(`There is no ${room.title} in this house!`);
+			}
+		} else {
+			console.error('Please provide a Room object!');
+		}
+	}
+
 }
 
 class Room {
@@ -46,7 +54,21 @@ class Room {
 				console.warn(`The ${device.title} is already in this room!`);
 			} else {
 				this._devices.push(device);
-				Utility.show(`${device.title} successfully added to the ${this.title}`);
+				show(`${device.title} successfully added to the ${this.title}`);
+
+			}
+		} else {
+			console.error('Please provide a smart device!');	
+		};
+	}
+
+	removeDevice(device) {
+		if (device instanceof SmartDevice) {
+			if(this._devices.find(dev => device === dev)) {
+				this._devices.splice(this._devices.indexOf(device), 1);
+				show(`The ${device.title} successfully removed!`);
+			} else {
+				console.warn(`There is no ${device.title} in this room!`);
 			}
 		} else {
 			console.error('Please provide a smart device!');	
@@ -55,7 +77,7 @@ class Room {
 
 	showAllDevices() {
 		this._devices.forEach(function(elem){
-			Utility.show(elem.title);
+			show(elem.title);
 		});
 	}
 }
@@ -67,16 +89,16 @@ class SmartDevice {
 	}
 
 	get currentStatus() {
-		Utility.show(`The ${this.title} is currently turned ${this._status ? 'on' : 'off'}.`);
+		show(`The ${this.title} is currently turned ${this._status ? 'on' : 'off'}.`);
 	}
 
 	powerSwitch() {
 		if (this._status) {
 			this._status = false;
-			Utility.show(`Turning the ${this.title} OFF.`);
+			show(`Turning the ${this.title} OFF.`);
 		} else {
 			this._status = true;
-			Utility.show(`Turning the ${this.title} ON.`);
+			show(`Turning the ${this.title} ON.`);
 		}
 	}
 } 
@@ -109,6 +131,7 @@ class Tv extends SmartDevice{
 		super(title);
 		this._channelsList = [...Array(100).keys()];
 		this.currentChannel = this._channelsList[0];
+		this._isFavorites = false;
 		this.favoriteChannels = [];
 	}
 
@@ -126,23 +149,24 @@ class Tv extends SmartDevice{
 		} else {
 			this.currentChannel = this._channelsList[currentChannelIndex + 1]
 		}
-		Utility.show(this.currentChannel);
+		show(this.currentChannel);
 	}
 
-	previousChannel() {
+	previousChannel() { 
+		(this._isFavorites)
 		let currentChannelIndex = this._channelsList.indexOf(this.currentChannel);
 		if (currentChannelIndex === 0) {
 			this.currentChannel = this._channelsList[this._channelsList.length - 1];
 		} else {
 			this.currentChannel = this._channelsList[currentChannelIndex - 1]
 		}
-		Utility.show(this.currentChannel);
+		show(this.currentChannel);
 	}
 
 	jumpToChannel(channelNumber) {
 		if (typeof channelNumber === 'number' && !isNaN(channelNumber) && this._channelsList.indexOf(channelNumber) > -1) {
 			this.currentChannel = channelNumber;
-			Utility.show('Success!');
+			show('Success!');
 		} else { 
 			console.error('Wrong argument');
 		}
@@ -154,7 +178,7 @@ class Tv extends SmartDevice{
 			console.warn(`The channel ${this.currentChannel} already in your favorites!`);
 		} else {
 			this.favoriteChannels.push(ch);
-			Utility.show('Saved!');
+			show('Saved!');
 		}
 	}
 
@@ -162,7 +186,7 @@ class Tv extends SmartDevice{
 		let [ch, flag] = this._checkChannel(channel);
 		if(flag) {
 			this.favoriteChannels.splice(this.favoriteChannels.indexOf(ch), 1);
-			Utility.show(`The channel ${ch} - has been removed from favorites!`);
+			show(`The channel ${ch} - has been removed from favorites!`);
 		} else {
 			console.warn(`The channel ${ch} is not in your favorites!`);
 		}
@@ -171,11 +195,16 @@ class Tv extends SmartDevice{
 	showFavorites() {
 		if (this.favoriteChannels.length !== 0) {
 			this.favoriteChannels.forEach(function(elem){
-				Utility.show(elem);
+				show(elem);
 			});
 		} else {
 			console.warn("You have no favorite channel!");
 		}
+	}
+
+	switchCurrentFavorites() {
+		this._isFavorites ? this._isFavorites = false : this._isFavorites = true;
+		show(`Switched to ${this._isFavorites ? 'Favorites' : 'Main List'}.`);
 	}
 }
 
