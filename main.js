@@ -1,141 +1,331 @@
-function House(address) {
+'use strict';
+
+/**
+ * Class representing a house.
+ */
+
+class House {
+  /**
+   * @param {string} address
+   */
+  constructor(address) {
     this._address = address;
-		this.rooms = [];
+    this._rooms = [];
+  }
+
+  get address() {
+    return this._address;
+  }
+
+  set address(newAddress) {
+    this._address = newAddress;
+  }
+
+  get rooms() {
+    return this._rooms;
+  }  
+
+  addRoom(room) {
+    if(room instanceof Room) {
+      if (this._rooms.find(rm => rm === room)) {
+        throw `The ${room.title} is already exists in this house!`;
+      } else {
+        this._rooms.push(room);
+        consoleShowBlue(`The ${room.title} successfully added!`);
+      }
+    } else {
+      throw 'Please provide a Room object!';
+    }
+  }
+
+  removeRoom(room) {
+    if(room instanceof Room) {
+      if (this._rooms.find(rm => rm === room))  {
+        this._rooms.splice(this._rooms.indexOf(room), 1);
+        consoleShowBlue(`The ${room.title} successfully removed!`)
+      } else {
+        throw `There is no ${room.title} in this house!`;
+      }
+    } else {
+      throw 'Please provide a Room object!';
+    }
+  }
+
+  static moveDeviceBetweenRooms(oldRoom, newRoom, device) {
+    if (newRoom instanceof Room && oldRoom instanceof Room) {
+      oldRoom.removeDevice(device);
+      newRoom.addDevice(device);
+    } else {
+      throw 'oldRoom and newRoom must be an instances of Room class!';  
+    }
+  }
 }
 
-House.prototype.addRoom = function(room){
-	if(room instanceof Room) {
-		if (this.rooms.find(function(rm){ return rm === room})) {
-			console.warn(`The ${room.title} already exists in this house`);
-		} else {
-			this.rooms.push(room);
-			console.info(`${room.title} successfully added`);
+/**
+ * Class representing a room of house.
+ */
+
+class Room {
+  /**
+   * @param {string} title 
+   */
+  constructor(title) {
+    this._title = title;
+    this._devices = [];
+  }
+
+  get title() {
+    return this._title;
+  }
+
+  set title(roomName) {
+    this._title = roomName;
+  }
+
+  addDevice(device) {
+    if (device instanceof SmartDevice) {
+      if (device.isPlaced) {
+        throw `The ${device.title} is placed in another room!`;
+      }  else if (this._devices.find(dev => device === dev)) {
+        console.warn(`The ${device.title} is already in this room!`);
+      } else {
+        this._devices.push(device);
+        device.isPlaced = true;
+        consoleShowBlue(`${device.title} successfully added to the ${this.title}`);
+      }
+    } else {
+      throw 'Please provide a smart device!';  
+    };
+  }
+
+  removeDevice(device) {
+    if (device instanceof SmartDevice) {
+      if(this._devices.find(dev => device === dev)) {
+        this._devices.splice(this._devices.indexOf(device), 1);
+        device.isPlaced = false;
+        consoleShowBlue(`The ${device.title} successfully removed!`);
+      } else {
+        console.warn(`There is no ${device.title} in this room!`);
+      }
+    } else {
+      console.error('Please provide a smart device!');  
+    };
+  }
+
+  getAllDevices() {
+    return this._devices;
+  }
+}
+
+/**
+ * Class representing a smart device.
+ */
+
+class SmartDevice {
+  /**
+   * @param {string} title 
+   */
+  constructor(title){
+    this._title = title;
+    this._status = false;
+    this._isPlaced = false;
+  }
+
+  get title() {
+    return this._title;
+  }
+
+  set title(deviceName) {
+    this._title = deviceName;
+  }
+
+  get currentStatus() {
+    return `The ${this.title} is currently turned ${this._status ? 'on' : 'off'}.`;
+  }
+
+  get isPlaced() {
+    return this._isPlaced;
+  }
+
+  /**
+   * @param {boolean} flag
+   */
+  set isPlaced(flag) {
+    this._isPlaced = flag;
+  }
+
+  powerSwitch() {
+    if (this._status) {  
+      this._status = false;
+      consoleShowBlue(`Turning the ${this.title} OFF.`);
+    } else {
+      this._status = true;
+      consoleShowBlue(`Turning the ${this.title} ON.`);
+    }
+  }
+} 
+
+/**
+ * Class representing a lamp.
+ * @extends SmartDevice
+ */
+
+class Lamp extends SmartDevice {
+  constructor(title) {
+    super(title);
+    this._lightColor = '#000000';
+    this._brightness = 'ff';
+    this._currentLight = this._lightColor + this._brightness;
+  }
+
+  get currentLight() {
+    return this._currentLight;
+  }
+
+  /**
+   * @param {string} color - hex color with alpha channel (e.g. #1c2c3fff).
+   */
+  set currentLight(color) {
+    let regex = new RegExp('^#[A-Fa-f0-9]{8}$');
+    if (regex.test(color)){
+      if (color.slice(0, 7) !== this.lightColor) {
+        this.lightColor = color.slice(0, 7);
+      }
+      if (color.slice(-2) !== this.brightness) {
+        this.brightness = color.slice(-2);
+      }
+      this._currentLight = color;
+    } else {
+      throw `${color} is not a hex color!`;
+    }
+  }
+
+  get lightColor() {
+    return this._lightColor;
+  }
+
+  /**
+   * @param {string} hexColor - hex color (e.g. #1c2c3f).
+   */
+  set lightColor(hexColor) {
+    this._lightColor = hexColor;
+    this.currentLight = this._lightColor + this._brightness;
+  }
+
+  get brightness() {
+    return this._brightness;
+  }
+
+  /**
+   * @param {string} hexNum - hex number to define hex color alpha channel (e.g. 4f).
+   */
+  set brightness(hexNum) {
+    this._brightness = hexNum;
+    this.currentLight = this._lightColor + this._brightness;
+  }
+}
+
+/**
+ * Class representing a TV.
+ * @extends SmartDevice
+ */
+
+class TV extends SmartDevice{
+  constructor(title) {
+    super(title);
+    this._channelsList = [...Array(100).keys()];
+    this._currentChannel = this._channelsList[0];
+    this._favoriteChannels = [];
+  }
+
+  get currentChannel() {
+    return this._currentChannel;
+  }
+
+  set currentChannel(channelNumber) {
+    this._currentChannel = this._checkChannel(channelNumber)[0];
+  }
+
+  /**
+   * Checks if channel is in a range of available channels.
+   * @param {number} channel
+   * @return {[number,boolean]} Array with a valid channel and boolean flag that defines the channel in favorites or not.
+   */
+
+  _checkChannel(channel) {
+    let ch, flag;
+    (channel) ? ch = channel : ch = this._currentChannel;
+    if (!(typeof ch === 'number')){
+      throw 'Provided value is not a number!';
+    } else if (this._channelsList.indexOf(ch) > -1) {
+      (this._favoriteChannels.indexOf(ch) > -1) ? flag = true : flag = false;
+      return [ch, flag];
+    } else { 
+      throw 'Channel is not exist!';
+    }
+  }
+
+  nextChannel() {
+    let currentChannelIndex = this._channelsList.indexOf(this._currentChannel);
+    if (this._channelsList.length - 1 === currentChannelIndex) {
+      this._currentChannel = this._channelsList[0];
+    } else {
+      this._currentChannel = this._channelsList[currentChannelIndex + 1]
+    }
+    consoleShowBlue(this._currentChannel);
+  }
+
+  previousChannel() { 
+    let currentChannelIndex = this._channelsList.indexOf(this._currentChannel);
+    if (currentChannelIndex === 0) {
+      this._currentChannel = this._channelsList[this._channelsList.length - 1];
+    } else {
+      this._currentChannel = this._channelsList[currentChannelIndex - 1]
+    }
+    consoleShowBlue(this._currentChannel);
+  }
+
+  /**
+   * @param {number} channel 
+   */
+  addToFavorites(channel) {
+		try {
+      let [ch, flag] = this._checkChannel(channel);
+      if(flag) {
+        throw `The channel ${ch} is already in your favorites!`;
+      } else {
+        this._favoriteChannels.push(ch);
+        consoleShowBlue('Saved!');
+      }
+		} catch (error) {
+			return error;
 		}
-	} else {
-		console.error('Please provide a Room object');
-	}
-}
+  }
 
-
-function Room(title) {
-	this.title = title;
-	this._devices = [];
-}
-
-Room.prototype.toString = function () { //TODO: ask Max
-	return this.title;
-}
-
-Room.prototype.addDevice = function (device, _internalFlag) {//TODO: on ELSE => remove the device from the previous room before adding to the new one
-	if (device instanceof SmartDevice) {
-		if(this._devices.find(function(dev){return device === dev})) {
-			console.warn(`The ${device.name} is already in this room`);
-		} else {
-			this._devices.push(device);
+  /**
+   * @param {number} channel 
+   */
+  removeFromFavorites(channel) {
+		try {
+      let [ch, flag] = this._checkChannel(channel);
+      if(flag) {
+        this._favoriteChannels.splice(this._favoriteChannels.indexOf(ch), 1);
+        consoleShowBlue(`The channel ${ch} - has been removed from favorites!`);
+      } else {
+        throw `The channel ${ch} is not in your favorites!`;
+      }
+		} catch (error) {
+      console.error(error);
+			return error;
 		}
-	} else {
-		console.error('Please provide a smart device');	
-	};
+  }
+
+  getFavorites() {
+    if (this._favoriteChannels.length !== 0) {
+      return this._favoriteChannels;
+    } else {
+      throw "You have no favorite channels!";
+    }
+  }
 }
 
-Room.prototype.showAllDevices = function() {
-	this._devices.forEach(function(elem){
-		console.info(elem.name);
-	});
-}
-
-
-function SmartDevice(name) {
-	this.name = name;
-	this._status = false;
-	this._location = null;
-}
-
-SmartDevice.prototype.toString = function () { //TODO: ask Max
-	return `${this.name} in the ${this._location}`;
-}
-
-SmartDevice.prototype.turnOnOff = function(command) { 
-	if (this._status === command) {
-		return (`The ${this.name} is currently turned ${command ? 'on' : 'off'}.`);
-	}
-	if (command) {
-		this.status = true;
-		return `Turning the ${this.name} ON.`;
-	} else {
-		this.status = false;
-		return `Turning the ${this.name} OFF.`;
-	}
-}
-
-// SmartDevice.prototype.setLocation = function(room) {
-// 	if (room instanceof Room) {
-// 		this._location = room;
-// 		room.addDevice(this);
-// 		console.info(`${this.name} now in the ${room.title}`);
-// 	} else {
-// 		console.error('Please provide a Room object');
-// 	}
-// }
-
-// SmartDevice.prototype.getLocation = function() {
-// 	if (this._location === null) {
-// 		console.info(`The ${this.name} not in a room yet.`);
-// 	} else {
-// 		this._location.title;
-// 	}
-// }
-
-
-function Lamp (name) {
-	SmartDevice.call(this, name);
-	this._lightColor = '#000000';
-	this._brightness = 'ff';
-}
-
-Lamp.prototype = Object.create(SmartDevice.prototype);
-Lamp.prototype.constructor = SmartDevice;
-
-Lamp.prototype.setLightColor = function (hexColor) {
-	this._lightColor = hexColor;
-	this._changeLight(this._lightColor, this._brightness);
-}
-
-Lamp.prototype.setBrightness = function (hexNum) {
-	this._brightness = hexNum;
-	this._changeLight(this._lightColor, this._brightness);
-}
-
-Lamp.prototype._changeLight = function (color, brightness) {
-	var lamp = document.querySelector("." + this.name);
-	lamp.style.backgroundColor = color + brightness;
-}
-
-
-function Tv (name) {
-	SmartDevice.call(this, name);
-	this.channelsList = [];
-	this.favoriteChannels = [];
-}
-
-Tv.prototype = Object.create(SmartDevice.prototype);
-Tv.prototype.constructor = SmartDevice;
-
-
-
-
-
-var house = new House('Kharkiv');
-var livingRoom = new Room('living room');
-var kitchen = new Room('kitchen');
-house.addRoom(livingRoom);
-house.addRoom(kitchen);
-
-var lamp = new Lamp('Golden Dragon');
-var lamp2 = new Lamp('IKEA');
-var tv = new Tv('Sony');
-var tv2 = new Tv('Samsung');
-
-livingRoom.addDevice(tv);
-livingRoom.addDevice(lamp);
-kitchen.addDevice(lamp2);
