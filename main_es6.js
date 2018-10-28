@@ -14,7 +14,7 @@ class House {
 	}
 
 	get address() {
-		consoleShow(this._address);
+		return this._address;
 	}
 
 	set address(newAddress) {
@@ -22,21 +22,19 @@ class House {
 	}
 
 	get rooms() {
-		this._rooms.forEach(function(elem){
-			consoleShow(elem.title);
-		});
+		return this._rooms;
 	}	
 
 	addRoom(room) {
 		if(room instanceof Room) {
 			if (this._rooms.find(rm => rm === room)) {
-				return new Error(`The ${room.title} already exists in this house!`);
+				throw `The ${room.title} is already exists in this house!`;
 			} else {
 				this._rooms.push(room);
 				consoleShow(`The ${room.title} successfully added!`);
 			}
 		} else {
-			return new Error(('Please provide a Room object!'));
+			throw 'Please provide a Room object!';
 		}
 	}
 
@@ -46,10 +44,19 @@ class House {
 				this._rooms.splice(this._rooms.indexOf(room), 1);
 				consoleShow(`The ${room.title} successfully removed!`)
 			} else {
-				return new Error(`There is no ${room.title} in this house!`);
+				throw `There is no ${room.title} in this house!`;
 			}
 		} else {
-			return new Error('Please provide a Room object!');
+			throw 'Please provide a Room object!';
+		}
+	}
+
+	static moveDeviceBetweenRooms(oldRoom, newRoom, device) {
+		if (newRoom instanceof Room && oldRoom instanceof Room) {
+			oldRoom.removeDevice(device);
+			newRoom.addDevice(device);
+		} else {
+			throw 'oldRoom and newRoom must be an instances of Room class!';	
 		}
 	}
 }
@@ -70,7 +77,7 @@ class Room {
 	addDevice(device) {
 		if (device instanceof SmartDevice) {
 			if (device.isPlaced) {
-				return new Error (`The ${device.title} is placed in another room!`);
+				throw `The ${device.title} is placed in another room!`;
 			}	else if (this._devices.find(dev => device === dev)) {
 				console.warn(`The ${device.title} is already in this room!`);
 			} else {
@@ -79,7 +86,7 @@ class Room {
 				consoleShow(`${device.title} successfully added to the ${this.title}`);
 			}
 		} else {
-			console.error('Please provide a smart device!');	
+			throw 'Please provide a smart device!';	
 		};
 	}
 
@@ -97,24 +104,13 @@ class Room {
 		};
 	}
 
-	moveDeviceToDifferentRoom(device, newRoom) {
-		if (newRoom instanceof Room) {
-			this.removeDevice(device);
-			newRoom.addDevice(device);
-		} else {
-			return new Error('newRoom must be an instance of Room class!');	
-		}
-	}
-
-	showAllDevices() {
-		this._devices.forEach(function(elem){
-			consoleShow(elem.title);
-		});
+	getAllDevices() {
+		return this._devices;
 	}
 }
 
 /**
- * Abstract class representing a smart device.
+ * Class representing a smart device.
  */
 
 class SmartDevice {
@@ -128,20 +124,15 @@ class SmartDevice {
 	}
 
 	get currentStatus() {
-		consoleShow(`The ${this.title} is currently turned ${this._status ? 'on' : 'off'}.`);
+		return `The ${this.title} is currently turned ${this._status ? 'on' : 'off'}.`;
 	}
 
 	get isPlaced() {
 		return this._isPlaced;
 	}
 
-	set isPlaced(bool) {
-		if(typeof bool === 'boolean') {
-			this._isPlaced = bool;
-		} else {
-			console.error('Must be boolean value!');
-			return new Error('Must be boolean value!');
-		}
+	set isPlaced(flag) {
+		this._isPlaced = flag;
 	}
 
 	powerSwitch() {
@@ -169,7 +160,7 @@ class Lamp extends SmartDevice {
 	}
 
 	get currentLight() {
-		consoleShow(this._currentLight);
+		return this._currentLight;
 	}
 
 	set currentLight(color) {
@@ -177,8 +168,7 @@ class Lamp extends SmartDevice {
 		if (regex.test(color)){
 			this._currentLight = color;
 		} else {
-			console.error(`${color} is not a hex color!`);
-			// return new Error(`${color} is not a hex color!`);
+			throw `${color} is not a hex color!`;
 		}
 	}
 	set lightColor(hexColor) {
@@ -210,11 +200,11 @@ class TV extends SmartDevice{
 	}
 
 	set currentChannel(channelNumber) {
-			this._currentChannel = this._checkChannel(channelNumber)[0];
+		this._currentChannel = this._checkChannel(channelNumber)[0];
 	}
 
 	/**
-	 * Checks if channel is in a range of available tv's chanells.
+	 * Checks if channel is in a range of available channels.
 	 * @param {number} channel
 	 * @return	{(number,boolean|Array} The number is a valid channel, boolean - if the channel in favorites or not.
 	 */
@@ -222,11 +212,13 @@ class TV extends SmartDevice{
 	_checkChannel(channel) {
 		let ch, flag;
 		(channel) ? ch = channel : ch = this._currentChannel;
-		if (typeof ch === 'number' && !isNaN(ch) && this._channelsList.indexOf(ch) > -1) {
+		if (!(typeof ch === 'number')){
+			throw 'Provided value is not a number!';
+		} else if (this._channelsList.indexOf(ch) > -1) {
 			(this._favoriteChannels.indexOf(ch) > -1) ? flag = true : flag = false;
 			return [ch, flag];
 		} else { 
-			console.error('Wrong argument');
+			throw 'Channel is not exist!';
 		}
 	}
 
@@ -253,7 +245,7 @@ class TV extends SmartDevice{
 	addToFavorites(channel) {
 		let [ch, flag] = this._checkChannel(channel);
 		if(flag) {
-			console.warn(`The channel ${this._currentChannel} already in your favorites!`);
+			console.warn(`The channel ${this._currentChannel} is already in your favorites!`);
 		} else {
 			this._favoriteChannels.push(ch);
 			consoleShow('Saved!');
@@ -270,7 +262,7 @@ class TV extends SmartDevice{
 		}
 	}
 
-	showFavorites() {
+	getFavorites() {
 		if (this._favoriteChannels.length !== 0) {
 			this._favoriteChannels.forEach(function(elem){
 				consoleShow(elem);
@@ -289,26 +281,7 @@ class TV extends SmartDevice{
 class AC extends SmartDevice {
 	constructor(title) {
 		super(title);
-		
+
 	}
 }
 
-
-/**
- * /////////////////////////////////////////////////////////////////////////////
- */
-
-
-let house = new House('Kharkiv');
-let livingRoom = new Room('living room');
-let kitchen = new Room('kitchen');
-house.addRoom(livingRoom);
-house.addRoom(kitchen);
-let lamp = new Lamp('lamp');
-let lamp3 = new Lamp('lamp');
-let lamp2 = new Lamp('lamp_2');
-let tv = new TV('TV');
-livingRoom.addDevice(tv);
-livingRoom.addDevice(lamp);
-kitchen.addDevice(lamp2);
-tv.addToFavorites();
