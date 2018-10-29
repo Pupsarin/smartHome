@@ -289,7 +289,7 @@ class TV extends SmartDevice{
    * @param {number} channel 
    */
   addToFavorites(channel) {
-		try {
+    try {
       let [ch, flag] = this._checkChannel(channel);
       if(flag) {
         throw `The channel ${ch} is already in your favorites!`;
@@ -297,16 +297,16 @@ class TV extends SmartDevice{
         this._favoriteChannels.push(ch);
         consoleShowBlue('Saved!');
       }
-		} catch (error) {
-			return error;
-		}
+    } catch (error) {
+      return error;
+    }
   }
 
   /**
    * @param {number} channel 
    */
   removeFromFavorites(channel) {
-		try {
+    try {
       let [ch, flag] = this._checkChannel(channel);
       if(flag) {
         this._favoriteChannels.splice(this._favoriteChannels.indexOf(ch), 1);
@@ -314,10 +314,10 @@ class TV extends SmartDevice{
       } else {
         throw `The channel ${ch} is not in your favorites!`;
       }
-		} catch (error) {
+    } catch (error) {
       console.error(error);
-			return error;
-		}
+      return error;
+    }
   }
 
   getFavorites() {
