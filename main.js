@@ -282,32 +282,39 @@ class TV extends SmartDevice{
    * @param {number} channel 
    */
   addToFavorites(channel) {
-		try {
+    try {
       let [ch, flag] = this._checkChannel(channel);
       if(flag) {
         throw `The channel ${ch} is already in your favorites!`;
       } else {
         this._favoriteChannels.push(ch);
       }
-		} catch (error) {
-			return error;
-		}
+    } catch (error) {
+      return error;
+    }
   }
 
   /**
    * @param {number} channel 
    */
   removeFromFavorites(channel) {
-		try {
+    try {
       let [ch, flag] = this._checkChannel(channel);
       if(flag) {
         this._favoriteChannels.splice(this._favoriteChannels.indexOf(ch), 1);
       } else {
         throw `The channel ${ch} is not in your favorites!`;
       }
+<<<<<<< HEAD
 		} catch (error) {
 			throw error;
 		}
+=======
+    } catch (error) {
+      console.error(error);
+      return error;
+    }
+>>>>>>> 547645d4febfd91b08a90ee8cea2aa57f6509449
   }
 
   getFavorites() {
