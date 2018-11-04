@@ -31,7 +31,6 @@ class House {
         throw `The ${room.title} is already exists in this house!`;
       } else {
         this._rooms.push(room);
-        consoleShowBlue(`The ${room.title} successfully added!`);
       }
     } else {
       throw 'Please provide a Room object!';
@@ -42,7 +41,6 @@ class House {
     if(room instanceof Room) {
       if (this._rooms.find(rm => rm === room))  {
         this._rooms.splice(this._rooms.indexOf(room), 1);
-        consoleShowBlue(`The ${room.title} successfully removed!`)
       } else {
         throw `There is no ${room.title} in this house!`;
       }
@@ -84,14 +82,13 @@ class Room {
 
   addDevice(device) {
     if (device instanceof SmartDevice) {
-      if (device.isPlaced) {
+      if (device.checkIfInstalled()) {
         throw `The ${device.title} is placed in another room!`;
-      }  else if (this._devices.find(dev => device === dev)) {
-        console.warn(`The ${device.title} is already in this room!`);
+      } else if (this._devices.find(dev => device === dev)) {
+          throw `The ${device.title} is already in this room!`;
       } else {
         this._devices.push(device);
-        device.isPlaced = true;
-        consoleShowBlue(`${device.title} successfully added to the ${this.title}`);
+        device.installInTheRoom();
       }
     } else {
       throw 'Please provide a smart device!';  
@@ -102,13 +99,12 @@ class Room {
     if (device instanceof SmartDevice) {
       if(this._devices.find(dev => device === dev)) {
         this._devices.splice(this._devices.indexOf(device), 1);
-        device.isPlaced = false;
-        consoleShowBlue(`The ${device.title} successfully removed!`);
+        device.removeFromTheRoom();
       } else {
-        console.warn(`There is no ${device.title} in this room!`);
+        throw `There is no ${device.title} in this room!`
       }
     } else {
-      console.error('Please provide a smart device!');  
+      throw 'Please provide a smart device!';
     };
   }
 
@@ -128,7 +124,7 @@ class SmartDevice {
   constructor(title){
     this._title = title;
     this._status = false;
-    this._isPlaced = false;
+    this._placed = false;
   }
 
   get title() {
@@ -139,28 +135,27 @@ class SmartDevice {
     this._title = deviceName;
   }
 
-  get currentStatus() {
+  getCurrentStatus() {
     return `The ${this.title} is currently turned ${this._status ? 'on' : 'off'}.`;
   }
 
-  get isPlaced() {
-    return this._isPlaced;
+  checkIfInstalled() {
+    return this._placed;
   }
 
-  /**
-   * @param {boolean} flag
-   */
-  set isPlaced(flag) {
-    this._isPlaced = flag;
+  installInTheRoom() {
+    this._placed = true;
+  }
+
+  removeFromTheRoom(){
+    this._placed = false;
   }
 
   powerSwitch() {
     if (this._status) {  
       this._status = false;
-      consoleShowBlue(`Turning the ${this.title} OFF.`);
     } else {
       this._status = true;
-      consoleShowBlue(`Turning the ${this.title} ON.`);
     }
   }
 } 
@@ -183,20 +178,20 @@ class Lamp extends SmartDevice {
   }
 
   /**
-   * @param {string} color - hex color with alpha channel (e.g. #1c2c3fff).
+   * @param {string} hexColor - hex color with alpha channel (e.g. #1c2c3fff).
    */
-  set currentLight(color) {
-    let regex = new RegExp('^#[A-Fa-f0-9]{8}$');
-    if (regex.test(color)){
-      if (color.slice(0, 7) !== this.lightColor) {
-        this.lightColor = color.slice(0, 7);
+  setCurrentLight(hexColor) {
+    const regex = new RegExp('^#[A-Fa-f0-9]{8}$');
+    if (regex.test(hexColor)){
+      if (hexColor.slice(0, 7) !== this.lightColor) {
+        this.lightColor = hexColor.slice(0, 7);
       }
-      if (color.slice(-2) !== this.brightness) {
-        this.brightness = color.slice(-2);
+      if (hexColor.slice(-2) !== this.brightness) {
+        this.brightness = hexColor.slice(-2);
       }
-      this._currentLight = color;
+      this._currentLight = hexColor;
     } else {
-      throw `${color} is not a hex color!`;
+      throw `${hexColor} is not a hex color!`;
     }
   }
 
@@ -207,9 +202,9 @@ class Lamp extends SmartDevice {
   /**
    * @param {string} hexColor - hex color (e.g. #1c2c3f).
    */
-  set lightColor(hexColor) {
+  setLightColor(hexColor) {
     this._lightColor = hexColor;
-    this.currentLight = this._lightColor + this._brightness;
+    this.setCurrentLight(this._lightColor + this._brightness);
   }
 
   get brightness() {
@@ -219,9 +214,9 @@ class Lamp extends SmartDevice {
   /**
    * @param {string} hexNum - hex number to define hex color alpha channel (e.g. 4f).
    */
-  set brightness(hexNum) {
+  setBrightness(hexNum) {
     this._brightness = hexNum;
-    this.currentLight = this._lightColor + this._brightness;
+    this.setCurrentLight(this._lightColor + this._brightness);
   }
 }
 
@@ -270,9 +265,8 @@ class TV extends SmartDevice{
     if (this._channelsList.length - 1 === currentChannelIndex) {
       this._currentChannel = this._channelsList[0];
     } else {
-      this._currentChannel = this._channelsList[currentChannelIndex + 1]
+      this._currentChannel = this._channelsList[currentChannelIndex + 1];
     }
-    consoleShowBlue(this._currentChannel);
   }
 
   previousChannel() { 
@@ -280,9 +274,8 @@ class TV extends SmartDevice{
     if (currentChannelIndex === 0) {
       this._currentChannel = this._channelsList[this._channelsList.length - 1];
     } else {
-      this._currentChannel = this._channelsList[currentChannelIndex - 1]
+      this._currentChannel = this._channelsList[currentChannelIndex - 1];
     }
-    consoleShowBlue(this._currentChannel);
   }
 
   /**
@@ -295,7 +288,6 @@ class TV extends SmartDevice{
         throw `The channel ${ch} is already in your favorites!`;
       } else {
         this._favoriteChannels.push(ch);
-        consoleShowBlue('Saved!');
       }
 		} catch (error) {
 			return error;
@@ -310,13 +302,11 @@ class TV extends SmartDevice{
       let [ch, flag] = this._checkChannel(channel);
       if(flag) {
         this._favoriteChannels.splice(this._favoriteChannels.indexOf(ch), 1);
-        consoleShowBlue(`The channel ${ch} - has been removed from favorites!`);
       } else {
         throw `The channel ${ch} is not in your favorites!`;
       }
 		} catch (error) {
-      console.error(error);
-			return error;
+			throw error;
 		}
   }
 
