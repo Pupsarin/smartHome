@@ -305,16 +305,9 @@ class TV extends SmartDevice{
       } else {
         throw `The channel ${ch} is not in your favorites!`;
       }
-<<<<<<< HEAD
 		} catch (error) {
 			throw error;
 		}
-=======
-    } catch (error) {
-      console.error(error);
-      return error;
-    }
->>>>>>> 547645d4febfd91b08a90ee8cea2aa57f6509449
   }
 
   getFavorites() {
