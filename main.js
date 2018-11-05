@@ -228,18 +228,24 @@ class Lamp extends SmartDevice {
 class TV extends SmartDevice{
   constructor(title) {
     super(title);
-    this._channelsList = [...Array(100).keys()];
-    this._currentChannel = this._channelsList[0];
+    this._currentChannel = 0;
     this._favoriteChannels = [];
+    this._isInFavoritesView = false;
   }
 
   get currentChannel() {
     return this._currentChannel;
   }
 
-  set currentChannel(channelNumber) {
-    this._currentChannel = this._checkChannel(channelNumber)[0];
+  setChannel(channelNumber) {
+    if (channelNumber <= 100 && channelNumber >= 0) {
+      this._currentChannel = channelNumber;
+    } else {
+      throw 'Out of range!';
+    }
   }
+
+  
 
   /**
    * Checks if channel is in a range of available channels.
@@ -252,7 +258,7 @@ class TV extends SmartDevice{
     (channel) ? ch = channel : ch = this._currentChannel;
     if (!(typeof ch === 'number')){
       throw 'Provided value is not a number!';
-    } else if (this._channelsList.indexOf(ch) > -1) {
+    } else if (ch <= 100 && ch >= 0) {
       (this._favoriteChannels.indexOf(ch) > -1) ? flag = true : flag = false;
       return [ch, flag];
     } else { 
@@ -261,20 +267,40 @@ class TV extends SmartDevice{
   }
 
   nextChannel() {
-    let currentChannelIndex = this._channelsList.indexOf(this._currentChannel);
-    if (this._channelsList.length - 1 === currentChannelIndex) {
-      this._currentChannel = this._channelsList[0];
+    if (this._isInFavoritesView) {
+      let nextChnlIndex = this._favoriteChannels.indexOf(this._currentChannel) + 1;
+      if (nextChnlIndex < this._favoriteChannels.length) {
+        this.setChannel(this._favoriteChannels[nextChnlIndex]);
+      } else { 
+        this.setChannel(this._favoriteChannels[0]);
+      }
     } else {
-      this._currentChannel = this._channelsList[currentChannelIndex + 1];
+      let nextChnl = this._currentChannel + 1;
+      if (nextChnl <= 100) {
+        this.setChannel(nextChnl);
+      } else {
+        this.setChannel(0);
+      }
     }
   }
 
-  previousChannel() { 
-    let currentChannelIndex = this._channelsList.indexOf(this._currentChannel);
-    if (currentChannelIndex === 0) {
-      this._currentChannel = this._channelsList[this._channelsList.length - 1];
+  previousChannel() {
+    if (this._isInFavoritesView) {
+      let prevChnlIndex = this._favoriteChannels.indexOf(this._currentChannel) - 1;
+      if (prevChnlIndex > -1) {
+        this.setChannel(this._favoriteChannels[prevChnlIndex]);
+      } else if (this._favoriteChannels.length === 0) { 
+        this.setChannel(this._favoriteChannels[0]);
+      } else {
+        this.setChannel(this._favoriteChannels[this._favoriteChannels.length -1]);
+      }
     } else {
-      this._currentChannel = this._channelsList[currentChannelIndex - 1];
+      let prevChnl = this._currentChannel - 1;
+      if (prevChnl >= 0) {
+        this.setChannel(prevChnl);
+      } else {
+        this.setChannel(100);
+      }
     }
   }
 
@@ -311,11 +337,24 @@ class TV extends SmartDevice{
   }
 
   getFavorites() {
-    if (this._favoriteChannels.length !== 0) {
+    if (this._favoriteChannels.length > -1) {
       return this._favoriteChannels;
     } else {
       throw "You have no favorite channels!";
     }
+  }
+
+  browseFavorites() {
+    this._isInFavoritesView = true;
+    try {
+      this.setChannel(this._favoriteChannels[0]);
+    } catch(err) {
+      throw err;
+    }
+  }
+
+  browseAllChannels() {
+    this._isInFavoritesView = false;
   }
 }
 
