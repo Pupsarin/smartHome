@@ -4,6 +4,8 @@ let livingRoom = new Room('living room');
 let bedroom = new Room('bedroom');
 let kitchen = new Room('kitchen');
 
+alert('Nagadil');
+
 consoleShowYellow('HOUSE - addRoom(room)');
 house.addRoom(livingRoom);
 house.addRoom(kitchen);
